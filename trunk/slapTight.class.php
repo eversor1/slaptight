@@ -5,7 +5,7 @@ include 'db.class.php';
 include 'slapTable.class.php';
 include 'slapRow.class.php';
 
-class slapTight {
+class slapTight implements Iterator {
     //Most variabels will be prefixed strangely in here as to avoid 
     //Potential conflicts with table column names;
     public static $instance;
@@ -17,7 +17,6 @@ class slapTight {
     var $fields;
     var $rows;
     var $live = false;
-    
 
     /**
     * This function initializes the slapTight class for the specified query
@@ -29,14 +28,15 @@ class slapTight {
     * @param  string $instanceName
     * @param  string $query 
     * @param  bool   $alive -- This allows live data retrival queries (see documentation)
-    * @return array  $rows -- An array of slapRow Objects.
+    * @return object $this -- return the slapright object. iteration of results is supported.
     */
     public function select($instanceName="default", $query, $alive=false) {
         if (!isset(self::$instance[$instanceName])) {
             $object= __CLASS__;
             self::$instance[$instanceName] = new $object($instanceName, $query, $alive);
         }
-        return self::$instance[$instanceName]->getRows();
+        //return self::$instance[$instanceName]->getRows();
+        return self::$instance[$instanceName];
     }
 
     /**
@@ -121,12 +121,12 @@ class slapTight {
     }
 
     /** 
-    * private function that just returns the array of row objects 
+    * function that just returns the array of row objects 
     * that resulted from the query
     * 
     * @return array $rows
     */
-    private function getRows() {
+    public function getRows() {
         return $this->rows;
     }
 
@@ -161,4 +161,31 @@ class slapTight {
     public function dead() {
         $this->live = false;
     }
+
+    /*****************************************************/
+
+    public function rewind() {
+        reset($this->rows);
+    }
+
+    public function current() {
+        $var = current($this->rows);
+        return $var;
+    }
+
+    public function key() {
+        $var = key($this->rows);
+        return $var;
+    }
+
+    public function next() {
+        $var = next($this->rows);
+        return $var;
+    }
+
+    public function valid() {
+        $var = $this->current() !== false;
+        return $var;
+    }
+
 }
