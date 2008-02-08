@@ -12,7 +12,7 @@ class db {
     
 
     function __construct($instanceName, $configName=null) {
-        //populdate the needed connection information from the config.ini file
+        //populate the needed connection information from the config.ini file
         $this->instanceName = $instanceName;
         $config = config::getInstance($configName);
         $this->hostname = $config->get('hostname');
@@ -47,6 +47,19 @@ class db {
     **/
     function update($sql) {
         mysql_query($sql) or die("There was an error in the SQL query");
+    }
+
+    /**
+    * This function is the same as the update function except for insert statements.
+    * This function will return any auto-generated id associated with the inserted row.
+    *
+    * @param string $sql
+    * @return int $lid //last insert id
+    */
+    function insert($sql) {
+        mysql_query($sql) or die("There was an error in the SQL query");
+        $lid = mysql_insert_id();
+        return $lid;
     }
 
     /**

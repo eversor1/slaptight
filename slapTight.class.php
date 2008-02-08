@@ -106,16 +106,21 @@ class slapTight implements Iterator {
         }
         //create and populate a slapRow object for each row returned.
         foreach($result as $row) {
-            $len = count($this->rows);
-            $this->rows[$len] = new slapRow($this->instanceName);
-            
-            foreach ($this->fields as $field) {
-                if (substr($field['name'], -4) == "_PRI") {
-                    $tableName = substr($field['name'], 0, -4);
-                    $this->rows[$len]->registerPKey($tableName, $this->table[$tableName]->getPKey(), $row[$field['name']]);
-                } else {
-                    $this->rows[$len]->setValue($field['name'], $field['table'], $row[$field['name']]);
-                }
+            $this->addRow($row);
+        }
+    }
+
+    private function addRow($row) {
+        //populate a slapRow object from the values being passed in.
+        $len = count($this->rows);
+        $this->rows[$len] = new slapRow($this->instanceName);
+        
+        foreach ($this->fields as $field) {
+            if (substr($field['name'], -4) == "_PRI") {
+                $tableName = substr($field['name'], 0, -4);
+                $this->rows[$len]->registerPKey($tableName, $this->table[$tableName]->getPKey(), $row[$field['name']]);
+            } else {
+                $this->rows[$len]->setValue($field['name'], $field['table'], $row[$field['name']]);
             }
         }
     }
@@ -187,5 +192,40 @@ class slapTight implements Iterator {
         $var = $this->current() !== false;
         return $var;
     }
-
+    
+    public function insert($data) {
+        $keys = array_keys($data);
+        foreach ($this->table as $table) {
+            foreach ($table->fields as $field) {
+                if (in_array($field, $keys)) {
+                    $values[$table->tableName][$field] = $data[$field];
+                }
+            }
+        }
+        if (! isset($values)) {
+            return false;
+        }
+        foreach ($values as $table=>$ary) {
+            foreach ($ary as $field=>$value) {
+                if (strlen($valueList) > 0) {
+                    $valueList .= ", ";
+                }
+                if (strlen($fieldList) > 0) {
+                    $fieldList .= ", ";
+                }
+                $fieldList .= "`".$field."`";
+                $valueList .= "'".$value."'";
+            }
+            $sql = "insert into `".$table."` (".$fieldList.") values (".$valueList.");";
+            $lid = $return[$table] = $this->db->insert($sql);
+            $pKey = $this->table[$table]->getPKey();
+            $data[$pKey] = $lid;
+        }
+        $this->addRow($data);
+        if (count($return) == 1) {
+            return $lid;
+        } else {
+            return $return;
+        }
+    }
 }

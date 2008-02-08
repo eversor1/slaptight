@@ -23,6 +23,11 @@ $selected = $_GET['code'];
 $sql = "SELECT * FROM people";
 //execute the sql query and make an array of slapTight row objects as the result
 $people = slapTight::select("people", $sql);
+
+if (($selected == "new") && ($_POST['submitted'] == 1)) {
+    $selected = $people->insert($_POST);
+}
+
 //lets cycle through them all to build the list and some other operations.
 foreach ($people as $key=>$data) {
         //if there is no record selecrted, set the default to the first in the list
@@ -67,6 +72,10 @@ $out .= "<body>";
 $out .= "<b>Person: </b><select onChange='location.href=\"".$_SERVER['PHP_SELF']."?code=\"+this.options[this.selectedIndex].value'>";
 $out .= $options;
 $out .= "</select>";
+if ($selected == "new") {
+    $disabled = "disabled";
+}
+$out .= "<button $disabled onClick='location.href=\"".$_SERVER['PHP_SELF']."?code=new\"'>New</button>";
 $out .= "<hr>";
 $out .= "<form method='post' action='".$_SERVER['PHP_SELF']."?code=".$selected."'>";
 $out .= "<table cellspacing='0' cellpadding='5' border='0'>";
