@@ -75,6 +75,9 @@ class slapTight implements Iterator {
         $explainSql = "EXPLAIN ".$query;
         $this->explainedResult = $this->db->query($explainSql);
         foreach ($this->explainedResult as $key=>$explanationRow) {
+            if ($explanationRow['table'] == NULL) {
+                return false;
+            }
             $this->table[$explanationRow['table']] = slapTable::getTable($explanationRow['table']);
         }
         //we now need to modify the query to make sure we can see the primary keys that come off of each table.
@@ -94,7 +97,7 @@ class slapTight implements Iterator {
         $result = $this->db->query($query);
         //lets map out the fields in the result before we populate the row objects.
         $testRow = $result[0];
-        foreach ($testRow as $fieldName=>$fieldData) {
+        foreach ((array)$testRow as $fieldName=>$fieldData) {
             //lets find the associated table
             $len = count($this->fields);
             $this->fields[$len]['name'] = $fieldName;
@@ -105,7 +108,7 @@ class slapTight implements Iterator {
             }
         }
         //create and populate a slapRow object for each row returned.
-        foreach($result as $row) {
+        foreach((array)$result as $row) {
             $this->addRow($row);
         }
     }
@@ -170,21 +173,21 @@ class slapTight implements Iterator {
     /*****************************************************/
 
     public function rewind() {
-        reset($this->rows);
+        @reset($this->rows);
     }
 
     public function current() {
-        $var = current($this->rows);
+        $var = @current($this->rows);
         return $var;
     }
 
     public function key() {
-        $var = key($this->rows);
+        $var = @key($this->rows);
         return $var;
     }
 
     public function next() {
-        $var = next($this->rows);
+        $var = @next($this->rows);
         return $var;
     }
 

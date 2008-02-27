@@ -1,5 +1,7 @@
 <?
-include 'config.class.php';
+
+require_once('config.class.php');
+
 class db {
     public static $instance;
     var $instanceName;
@@ -10,7 +12,6 @@ class db {
     var $database;
     var $config;
     
-
     function __construct($instanceName, $configName=null) {
         //populate the needed connection information from the config.ini file
         $this->instanceName = $instanceName;
@@ -32,10 +33,13 @@ class db {
     * @param string $sql
     * @return array $result
     **/
-    function query($sql) {
+    function query($sql, $debug=null) {
         $result = mysql_query($sql) or die("There is an error in the SQL query");
         while ($row = mysql_fetch_assoc($result)) {
             $return[] = $row;
+        }
+        if ($debug == 1) {
+            echo $sql.var_dump($return)."<HR>";
         }
         return $return;
     }
