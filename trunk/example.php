@@ -12,7 +12,6 @@ You Should probably take a look at the example data sql file included with the p
 2. load the database with the included .sql file. (mysql -u root -p -D database name < slapTightTest.sql)
 3. update slapTight's config.ini with your database settings.
 4. view this file in your browser, as well as with a text editor, so you can follow along. 
-
 */
 
 include 'slapTight.class.php';
@@ -20,9 +19,11 @@ include 'slapTight.class.php';
 //lets set the selected variable to the code value from get, if it is there.
 $selected = $_GET['code'];
 //This is the sql query, and the only sql query that will be used manually by the programmer.
-$sql = "SELECT * FROM people";
+$peopleSQL = "SELECT * FROM people";
+$stateSQL = "SELECT * FROM states order by name ASC";
 //execute the sql query and make an array of slapTight row objects as the result
-$people = slapTight::select("people", $sql);
+$people = slapTight::select("people", $peopleSQL);
+$states = slapTight::select("states", $stateSQL);
 
 if (($selected == "new") && ($_POST['submitted'] == 1)) {
     $selected = $people->insert($_POST);
@@ -41,6 +42,7 @@ foreach ($people as $key=>$data) {
         if (($selected == $data->id) && ($_POST['submitted'] == 1)) {
             $data->first_name = $_POST['first_name'];
             $data->last_name = $_POST['last_name'];
+            $data->state_id = $_POST['state_id'];
             $data->title = $_POST['title'];
             $data->company = $_POST['company'];
             $data->phone = $_POST['phone'];
@@ -65,7 +67,7 @@ foreach ($people as $key=>$data) {
 //-------------------------------
 $out = "<HTML>
         <HEAD>
-            <title>SlapTighTest</title>
+            <title>SlapTightTest</title>
         </head>";
 $out .= "<body>";
 //Provide a little javascript to move between the records easily.
@@ -81,10 +83,21 @@ $out .= "<form method='post' action='".$_SERVER['PHP_SELF']."?code=".$selected."
 $out .= "<table cellspacing='0' cellpadding='5' border='0'>";
 $out .= "<tr><td><b>First Name: </b></td>";
 //If the query is set to the LIVE state, then each time you retrieve the data from the object like this
-// it will do another query to make sure that the latest data is returned.
+//it will do another query to make sure that the latest data is returned.
 $out .= "<td><input type='text' name='first_name' value='".$person->first_name."'></td>";
 $out .= "<tr><td><b>Last Name: </b></td>";
 $out .= "<td><input type='text' name='last_name' value='".$person->last_name."'></td>";
+$out .= "<tr><td><b>State: </b></td>";
+$out .= "<td><select name='state_id'>";
+foreach ($states as $state) {
+    if ($state->id == $person->state_id) {
+        $selected = "selected";
+    } else {
+        $selected = "";
+    }
+    $out .= "<option value='".$state->id."' $selected>".$state->name."</option>";
+}
+$out .= "</select></td>";
 $out .= "<tr><td><b>Title: </b></td>";
 $out .= "<td><input type='text' name='title' value='".$person->title."'></td>";
 $out .= "<tr><td><b>Company: </b></td>";
